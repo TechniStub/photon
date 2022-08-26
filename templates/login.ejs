@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Photobooth Web App</title>
+    </head>
+    <body>
+        <% if (incorrect) { %>
+            <h2>Username / Password is incorrect </h2>
+        <% } %>
+        <form method="POST" action="/login">
+            <p><label for="username">Username</label> <input id="username" type="text" name="username"/></p>
+            <p><label for="password">Password</label> <input id="password" type="password" name="password"/></p>
+
+            <input type="submit" value="login">
+        </form>
+    </body>
+</html>

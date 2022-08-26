@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Photobooth Web App</title>
+    </head>
+    <body>
+        <div class="section">
+            <div class="section_name"> Application Control </div>
+            <div class="section_body">
+                <ul>
+                    <li><button onclick="start_app()">Start application</button></li>
+                    <li><button onclick="stop_app()">Stop application</button></li>
+                </ul>
+                <div>
+                    <input type="checkbox" id="app_autostart">
+                    <label for="app_autostart">Application auto-start</label>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="apply()">Apply</button> 
+        <button onclick="location.href = '/logout'">Logout</button>
+
+        <div>
+            <input type="file" id="footer_file_upload" name="footer" accept="image/png"/>
+            <button id="footer_submit" onclick="upload_footer(this)">Upload</button>
+        </div>
+    
+        <script>
+            let s = "<%= JSON.stringify(settings) %>".replaceAll("&#34;", '"')
+            let settings = JSON.parse(s)
+
+            console.log(settings)
+
+            if (settings.auto_start) {
+                document.getElementById("app_autostart").checked = true
+            }
+
+            function start_app() {
+                let req = new XMLHttpRequest();
+
+                req.open("GET", "/app_?start", true);
+                req.send();
+            }
+
+            function stop_app() {
+                let req = new XMLHttpRequest();
+
+                req.open("GET", "/app_?stop", true);
+                req.send();
+            }
+            
+            function apply() {
+                let req = new XMLHttpRequest();
+
+                let p = "auto_start="+document.getElementById("app_autostart").checked.toString()
+
+                req.open("POST", "/settings?"+p, true);
+                req.send();
+            }
+
+            function upload_footer(button) {
+                let input = document.getElementById("footer_file_upload");
+
+                console.log(input.files[0])
+
+                const formData = new FormData();
+
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var contents = e.target.result;
+                    
+                    formData.append("footer_raw", btoa(unescape(encodeURIComponent(contents))))
+                    
+                    const request = new XMLHttpRequest();
+                    // https://44a88c10-f9ad-4dff-8dbb-fa692287e1d8.mock.pstmn.io
+                    request.open("POST", "/footer_upload_raw?redirect=/");
+                    request.send(formData);
+                };
+
+                reader.readAsText(input.files[0]);
+            }
+        </script>
+    </body>
+</html>
