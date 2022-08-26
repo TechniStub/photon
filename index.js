@@ -1,3 +1,9 @@
+// ----------------------------------------------------------------------------
+//  Created By  : @aaryswastaken
+//  Created Date: 24/08/2022
+//  version: 1.0
+//  ---------------------------------------------------------------------------
+
 const fastify = require('fastify')({ logger: false });
 require("dotenv").config();
 const { spawn } = require('child_process');
