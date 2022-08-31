@@ -1,0 +1,14 @@
+[Unit]
+Description=Photon Web App
+After=multi-user.target
+ 
+[Service]
+Type=idle
+ 
+User=pi
+ExecStart=/usr/bin/node /home/pi/photon/index.js
+WorkingDirectory=/home/pi/photon/
+Conflicts=photon-standalone.service
+
+[Install]
+WantedBy=multi-user.target
