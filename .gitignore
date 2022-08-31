@@ -3,4 +3,7 @@ twitter.creds
 package-lock.json
 node_modules/
 footer.png
-save/
+save/*
+logger.log
+temp.jpg
+output.png

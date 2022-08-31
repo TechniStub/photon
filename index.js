@@ -11,11 +11,23 @@ const { exec, spawn } = require('child_process');
 const fs = require("fs");
 const { escape } = require('querystring');
 
+var log4js = require("log4js");
+
+log4js.configure({
+    appenders: { web: { type: "file", filename: "logger.log" }, console: { type: "console" } },
+    categories: { default: { appenders: ["web", "console"], level: "info" } },
+})
+
+var logger = log4js.getLogger("web");
+var app_logger = log4js.getLogger("app");
+
+logger.info("Application started")
+
 const debug_flags = ["-d", "--debug"]
 let debug = process.argv.some(s => debug_flags.includes(s))
 
 if (debug) {
-    console.log("[*] DEBUG ENABLED")
+    logger.warn("DEBUG ENABLED")
 }
 
 fastify.register(require("@fastify/view"), {
@@ -63,7 +75,7 @@ function makeid(length) {
 }
 
 const auth_hash = debug ? "makeid(20)" : makeid(20);
-console.log(auth_hash)
+logger.debug("Auth hash is:", auth_hash)
 
 function isAuth(req) {
     return req.cookies.auth == auth_hash
@@ -76,85 +88,100 @@ function fmt(val, type) {
 }
 
 function start_app() {
-    console.log("Starting application");
+    app_logger.info("Starting application");
+
+    if (!isNaN(app_process)) {
+        app_logger.warn("Application is already started... exiting")
+        stop_app()
+    }
+
     let p = process.env.APP_EXECUTABLE.split(" ")
     if (p.length == 1) {
-        console.log("[!] Starting: " + p[0])
+        app_logger.info("Starting:", p[0])
         app_process = spawn(p[0])
     } else {
         let s = p[0]
         p.shift()
-        console.log("[!] Starting: " + s + " " + p.join(" "))
+        app_logger.info("Starting:", s, p.join(" "))
         app_process = spawn(s, p)
     }
 
+    app_process.on('message', (data, sH) => {
+        app_logger.info("Child process: " + data);
+    })
+
     app_process.stdout.on('data', (data) => {
-        console.log("[^] Child process: " + data);
+        app_logger.info("Child process: " + data);
     })
 
     app_process.stderr.on('data', (data) => {
-        console.log("[^] Error on child process: " + data);
+        app_logger.error("Error on child process: " + data);
     })
 
     app_process.on("error", (err) => {
-        console.log("[^] Direct error: " + err)
+        app_logger.error("Direct error: " + err)
     })
 
-    console.log("[!] App started")
+    app_logger.info("App started")
 }
 
 function stop_app() {
-    console.log("Stopping application")
+    app_logger.info("Stopping application")
     app_process.stdin.pause();
     app_process.kill();
+
+    app_process = NaN;
 }
 
 function initialise() {
-    console.log("[*] Testing if the configuration is correct...")
+    logger.info("Testing if the configuration is correct...")
     let files = fs.readdirSync("./")
     
     // Test if there is a footer_default.png
     if (files.some(s => s == "footer_default.png")) {
-        console.log("[*] footer_default.png is present");
+        logger.info("footer_default.png is present");
     } else {
-        console.log("[*] footer_default.png is absent, quitting");
+        logger.fatal("footer_default.png is absent, quitting");
         process.exit(1)
     }
     
     // Test if there is a footer.png
     if (files.some(s => s == "footer.png")) {
-        console.log("[*] footer.png is present");
+        logger.info("footer.png is present");
     } else {
-        console.log("[*] footer.png is absent, apply default");
+        logger.error("footer.png is absent, apply default");
         fs.writeFileSync("footer.png", fs.readFileSync("footer_default.png"))
     }
 
     // Test if there is a settings.json
     if (files.some(s => s == "settings.json")) {
-        console.log("[*] settings.json is present");
+        logger.info("settings.json is present");
     } else {
-        console.log("[*] settings.json is absent, quitting");
+        logger.fatal("settings.json is absent, quitting");
         process.exit(1)
     }
 
     // Test if there is a directory for the output
     if (fs.existsSync("./save")) {
-        console.log("[*] save folder is present");
+        logger.info("save folder is present");
     } else {
-        console.log("[*] save foler is absent, creating one");
+        logger.error("save foler is absent, creating one");
         fs.mkdirSync("./save")
     }
 }
 
 fastify.get("/", (req, res) => {
+    logger.info("GET /")
     if (isAuth(req)) {
         res.view("/templates/index.ejs", {settings: settings.settings});
     } else {
+        logger.warn("Not authentified, redirecting to login...")
         res.redirect("/login");
     }
 });
 
 fastify.get("/app_", (req, res) => {
+    logger.info("GET /app_")
     if (isAuth(req)) {
         let sp = req.url.split("?")
 
@@ -171,21 +198,25 @@ fastify.get("/app_", (req, res) => {
         res.code(200)
         return "Ok"
     } else {
+        logger.warn("Not authentified, throwing 401")
         res.code(401)
         return "Unauthorized"
     }
 })
 
 fastify.get("/settings", (req, res) => {
+    logger.info("GET /settings")
     if (isAuth(req)) {
         return settings.settings
     } else {
+        logger.warn("Not authentified, throwing 401")
         res.code(401)
         return "Unauthorized"
     }
 })
 
 fastify.post("/settings", (req, res) => {
+    logger.info("POST /settings")
     if (isAuth(req)) {
         let parsed = req.url.split("?")
 
@@ -203,23 +234,27 @@ fastify.post("/settings", (req, res) => {
             return "OK"
         }
     } else {
+        logger.warn("Not authentified, throwing 401")
         res.code(401)
         return "Unauthorized"
     }
 })
 
 fastify.post("/footer_default", (req, res) => {
+    logger.info("POST /footer_default")
     if (isAuth(req)) {
         fs.writeFileSync("footer.png", fs.readFileSync("footer_default.png"))
         res.code(200)
         return "Ok"
     } else {
+        logger.warn("Not authentified, throwing 401")
         res.code(401)
         return "Unauthorized"
     }
 })
 
 fastify.post("/footer_upload", (req, res) => {
+    logger.info("POST /footer_upload")
     if (isAuth(req)) {
         const files = req.raw.files
         
@@ -230,21 +265,24 @@ fastify.post("/footer_upload", (req, res) => {
                 res.code(200)
                 return "Ok"
             } else {
+                logger.error("Wrong file")
                 res.code(406)
                 return "Wrong file"
             }
         } else {
-            console.log("undefined")
+            logger.error("File not provided")
             res.code(406)
             return "File not provided"
         }
     } else {
+        logger.warn("Not authentified, throwing 401")
         res.code(401)
         return "Unauthorized"
     }
 })
 
 fastify.post("/footer_upload_raw", (req, res) => {
+    logger.info("POST /footer_upload_raw")
     if (isAuth(req)) {
         if (Object.keys(req.body).includes("footer_raw")) {
             if (req.body["footer_raw"].startsWith("data:image/png;base64,")) {
@@ -257,32 +295,38 @@ fastify.post("/footer_upload_raw", (req, res) => {
                 res.code(200)
                 return "Ok"
             } else {
-                res.code(406);
+                logger.warn("File invalid")
+                res.code(406)
                 return "File invalid"
             }
         } else {
+            logger.error("File not provided")
             res.code(406)
             return "File not provided"
         }
     } else {
+        logger.warn("Not authentified, throwing 401")
         res.code(401)
         return "Unauthorized"
     }
 })
 
 fastify.post("/set_default_footer", (req, res) => {
+    logger.info("POST /set_default_footer")
     if (isAuth(req)) {
         fs.writeFileSync("./footer.png", fs.readFileSync("./footer_default.png"))
 
         res.code(200)
         return "Ok"
     } else {
+        logger.warn("Not authentified, throwing 401")
         res.code(401)
         return "Unauthorized"
     }
 })
 
 fastify.get("/download_images", (req, res) => {
+    logger.info("GET /download_images")
     if (isAuth(req)) {
         exec("zip -r export.zip save", (err, _stdout, _stdin) => {
             if (err) {
@@ -296,12 +340,14 @@ fastify.get("/download_images", (req, res) => {
             'attachment; filename=output.zip');
         res.send(fs.readFileSync("output.zip")).type('application/zip').code(200)
     } else {
+        logger.warn("Not authentified, throwing 401")
         res.code(401)
         return "Unauthorized"
     }
 })
 
 fastify.post("/delete_images", (req, res) => {
+    logger.info("POST /delete_images")
     if (isAuth(req)) {
         exec("rm -r save/*", (err, _stdout, _stdin) => {
             if (err) {
@@ -313,12 +359,15 @@ fastify.post("/delete_images", (req, res) => {
         res.code(200)
         return "Ok"
     } else {
+        logger.warn("Not authentified, throwing 401")
         res.code(401)
         return "Unauthorized"
     }
 })
 
 fastify.get("/login", (req, res) => {
+    logger.info("GET /login")
+
     let i = false;
     let l = req.url.split("?");
     if (l.length > 1) {
@@ -327,22 +376,24 @@ fastify.get("/login", (req, res) => {
         }
     }
 
-    console.log(i);
     res.view("/templates/login.ejs", {incorrect: i});
 });
 
 fastify.post("/login", (req, res) => {
+    logger.info("POST /login")
+
     if (process.env.APP_USERNAME == req.body.username && process.env.APP_PASSWORD == req.body.password) {
-        console.log("Auth succeeded")
+        logger.info("Auth succeeded")
         res.cookie("auth", auth_hash)
         res.redirect("/")
     } else {
-        console.log("Auth failed")
+        logger.error("Auth failed")
         res.redirect("/login?incorrect=true")
     }
 });
 
 fastify.get("/logout", (req, res) => {
+    logger.info("GET /logout")
     res.cookie("auth", "")
     res.redirect("/login")
 })
@@ -351,14 +402,16 @@ const start = async () => {
     initialise()
 
     if (settings.settings.auto_start) {
+        logger.info("Autostart enabled")
         start_app()
     }
 
     try {
-      await fastify.listen({ port: 3000, host: "0.0.0.0" })
+        logger.info("Listening on 0.0.0.0:3000")
+        await fastify.listen({ port: 3000, host: "0.0.0.0" })
     } catch (err) {
-      fastify.log.error(err)
-      process.exit(1)
+        fastify.log.error(err)
+        process.exit(1)
     }
 }
 start()

@@ -121,10 +121,9 @@ camera.start_preview()
 
 def do_capture():
 	timestamp = datetime.now()
-	filename = 'pic'+str(timestamp)+'.jpg'
+	filename = 'save/pic'+str(timestamp)+'.jpg'
 	camera.capture(filename)
 	os.system("cp '"+filename+"' temp.jpg")
-	print("cp '"+filename+"' temp.jpg")
 
 
 def confirm_capture():
