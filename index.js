@@ -6,7 +6,7 @@
 
 const fastify = require('fastify')({ logger: false });
 require("dotenv").config();
-const { spawn } = require('child_process');
+const { exec, spawn } = require('child_process');
 
 const fs = require("fs");
 const { escape } = require('querystring');
@@ -168,6 +168,7 @@ fastify.get("/app_", (req, res) => {
             }
         }
 
+        res.code(200)
         return "Ok"
     } else {
         res.code(401)
@@ -281,6 +282,42 @@ fastify.post("/set_default_footer", (req, res) => {
     }
 })
 
+fastify.get("/download_images", (req, res) => {
+    if (isAuth(req)) {
+        exec("zip -r export.zip save", (err, _stdout, _stdin) => {
+            if (err) {
+                res.code(501)
+                return "Unexpected error in the zip creation"
+            }
+        })
+
+        res.header(
+            'Content-Disposition',
+            'attachment; filename=output.zip');
+        res.send(fs.readFileSync("output.zip")).type('application/zip').code(200)
+    } else {
+        res.code(401)
+        return "Unauthorized"
+    }
+})
+
+fastify.post("/delete_images", (req, res) => {
+    if (isAuth(req)) {
+        exec("rm -r save/*", (err, _stdout, _stdin) => {
+            if (err) {
+                res.code(501)
+                return "Unexpected error in the zip creation"
+            }
+        })
+
+        res.code(200)
+        return "Ok"
+    } else {
+        res.code(401)
+        return "Unauthorized"
+    }
+})
+
 fastify.get("/login", (req, res) => {
     let i = false;
     let l = req.url.split("?");
@@ -318,7 +355,7 @@ const start = async () => {
     }
 
     try {
-      await fastify.listen({ port: 3000 })
+      await fastify.listen({ port: 3000, host: "0.0.0.0" })
     } catch (err) {
       fastify.log.error(err)
       process.exit(1)

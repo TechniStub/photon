@@ -41,6 +41,10 @@
                 top: 8px;
                 left: 5px;
             }
+
+            .section_body > * {
+                margin: 5px 0px;
+            }
         </style>
 
         <div class="s" id="information_container">
@@ -59,18 +63,32 @@
                     <label for="app_autostart">Application auto-start</label>
                 </div>
 
-                <button onclick="apply()">Apply</button> 
-                <button onclick="location.href = '/logout'">Logout</button>
+                <div style="margin-top: 15px;">
+                    <button onclick="apply()">Apply</button> 
+                    <button onclick="location.href = '/logout'">Logout</button>
+                </div>
             </div>
         </div>
 
         <div class="section">
             <div class="section_name"> Footer Control <div></div> </div>
             <div class="section_body">
+                New footer: 
                 <input type="file" id="footer_file_upload" name="footer" accept="image/png"/>
                 <button id="footer_submit" onclick="upload_footer(this)">Upload</button>
 
-                <button onclick="default_footer()">Set default footer</button>
+                <br>
+
+                <button onclick="default_footer()" style="margin-top: 5px;">Set default footer</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section_name"> Images management <div></div> </div>
+            <div class="section_body">
+                <button onclick="downloadImages()"> Download Images </button> <br>
+                <button onclick="askDeleteConfirmation()"> Delete Images (no return) </button>
+                <button id="confirm_delete" onclick="deleteImages()" hidden> Are you sure? </button>
             </div>
         </div>
     
@@ -190,6 +208,33 @@
 
                 req.open("POST", "/set_default_footer", true);
                 req.send();
+            }
+
+            function downloadImages() {
+                open("/download_images")
+            }
+
+            function askDeleteConfirmation() {
+                document.getElementById("confirm_delete").hidden = false
+            }   
+
+            function deleteImages() {
+                let req = new XMLHttpRequest();
+
+                 req.onload = () => {
+                    if(req.status = 200) {
+                        setGreenInfo();
+                    } else {
+                        setRedInfo();
+                    }
+
+                    info_text.innerText = "[" + getTime() + "] Images deletion: " + req.responseText
+                }
+
+                req.open("POST", "/delete_images", true);
+                req.send();
+
+                document.getElementById("confirm_delete").hidden = true
             }
         </script>
     </body>
