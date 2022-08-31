@@ -51,3 +51,4 @@ consumer_secret
  - Mettre les image sauvegardées dans un dossier à part
  - Ne sauvegarder que les photos avec le *footer*
  - Mettre en place une vraie gestion de projet 
+ - Add log4js support

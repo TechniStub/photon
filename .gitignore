@@ -2,3 +2,5 @@ twitter.creds
 .env
 package-lock.json
 node_modules/
+footer.png
+save/

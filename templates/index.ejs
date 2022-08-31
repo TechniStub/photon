@@ -76,15 +76,18 @@
                 reader.onload = function(e) {
                     var contents = e.target.result;
                     
-                    formData.append("footer_raw", btoa(unescape(encodeURIComponent(contents))))
+                    let b64 = contents.replace("pngbase64", "")
+
+                    console.log(b64)
+                    formData.append("footer_raw", b64)
                     
                     const request = new XMLHttpRequest();
-                    // https://44a88c10-f9ad-4dff-8dbb-fa692287e1d8.mock.pstmn.io
+                    
                     request.open("POST", "/footer_upload_raw?redirect=/");
                     request.send(formData);
                 };
 
-                reader.readAsText(input.files[0]);
+                reader.readAsDataURL(input.files[0]);
             }
         </script>
     </body>

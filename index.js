@@ -9,8 +9,7 @@ require("dotenv").config();
 const { spawn } = require('child_process');
 
 const fs = require("fs");
-const { type } = require('os');
-const { parse } = require('path');
+const { escape } = require('querystring');
 
 const debug_flags = ["-d", "--debug"]
 let debug = process.argv.some(s => debug_flags.includes(s))
@@ -247,9 +246,19 @@ fastify.post("/footer_upload", (req, res) => {
 fastify.post("/footer_upload_raw", (req, res) => {
     if (isAuth(req)) {
         if (Object.keys(req.body).includes("footer_raw")) {
-            fs.writeFileSync("footer.png", decodeURIComponent(escape(atob(req.body.footer_raw))))
-            res.code(200)
-            return "Ok"
+            if (req.body["footer_raw"].startsWith("data:image/png;base64,")) {
+                let raw = req.body["footer_raw"].replace(/^data:image\/\w+;base64,/, "");
+                let buffer = Buffer.from(raw, "base64");
+
+                console.log(buffer)
+
+                fs.writeFileSync("footer.png", buffer)
+                res.code(200)
+                return "Ok"
+            } else {
+                res.code(406);
+                return "File invalid"
+            }
         } else {
             res.code(406)
             return "File not provided"
