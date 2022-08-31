@@ -269,6 +269,18 @@ fastify.post("/footer_upload_raw", (req, res) => {
     }
 })
 
+fastify.post("/set_default_footer", (req, res) => {
+    if (isAuth(req)) {
+        fs.writeFileSync("./footer.png", fs.readFileSync("./footer_default.png"))
+
+        res.code(200)
+        return "Ok"
+    } else {
+        res.code(401)
+        return "Unauthorized"
+    }
+})
+
 fastify.get("/login", (req, res) => {
     let i = false;
     let l = req.url.split("?");

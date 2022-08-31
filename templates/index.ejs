@@ -10,8 +10,45 @@
               version: 1.0
             ----------------------------------------------------------------------------->
 
+        <style>
+            #information_container {
+                width: 100%;
+                background-color: green;
+                color: #fff;
+                margin-bottom: 30px;
+            }
+
+            #info {
+                padding: 10px 30px;
+            }
+
+            .section {
+                margin: 10px 0px;
+                padding: 5px;
+                border: 1px solid black;
+            }
+
+            .section_name {
+                margin-bottom: 5px;
+                display: flex;
+            }
+
+            .section_name > div {
+                width: 100px;
+                height: 0px;
+                border-top: 2px solid black;
+                position: relative;
+                top: 8px;
+                left: 5px;
+            }
+        </style>
+
+        <div class="s" id="information_container">
+            <div id="info"> INFO: Login OK </div>
+        </div>
+
         <div class="section">
-            <div class="section_name"> Application Control </div>
+            <div class="section_name"> Application Control <div></div> </div>
             <div class="section_body">
                 <ul>
                     <li><button onclick="start_app()">Start application</button></li>
@@ -21,20 +58,48 @@
                     <input type="checkbox" id="app_autostart">
                     <label for="app_autostart">Application auto-start</label>
                 </div>
+
+                <button onclick="apply()">Apply</button> 
+                <button onclick="location.href = '/logout'">Logout</button>
             </div>
         </div>
 
-        <button onclick="apply()">Apply</button> 
-        <button onclick="location.href = '/logout'">Logout</button>
+        <div class="section">
+            <div class="section_name"> Footer Control <div></div> </div>
+            <div class="section_body">
+                <input type="file" id="footer_file_upload" name="footer" accept="image/png"/>
+                <button id="footer_submit" onclick="upload_footer(this)">Upload</button>
 
-        <div>
-            <input type="file" id="footer_file_upload" name="footer" accept="image/png"/>
-            <button id="footer_submit" onclick="upload_footer(this)">Upload</button>
+                <button onclick="default_footer()">Set default footer</button>
+            </div>
         </div>
     
         <script>
             let s = "<%= JSON.stringify(settings) %>".replaceAll("&#34;", '"')
             let settings = JSON.parse(s)
+
+            let info_container = document.getElementById("information_container");
+            let info_text = document.getElementById("info");
+
+            function setGreenInfo() {
+                info_container.style.backgroundColor = "green";
+                info_text.style.color = "white"
+            }
+
+            function setYellowInfo() {
+                info_container.style.backgroundColor = "yellow"
+                info_text.style.color = "black"
+            }
+
+            function setRedInfo() {
+                info_container.style.backgroundColor = "red"
+                info_text.style.color = "white"
+            }
+
+            function getTime() {
+                let date = new Date()
+                return date.toISOString().split('T')[1].split(".")[0]
+            }
 
             console.log(settings)
 
@@ -61,6 +126,16 @@
 
                 let p = "auto_start="+document.getElementById("app_autostart").checked.toString()
 
+                req.onload = () => {
+                    if(req.status = 200) {
+                        setGreenInfo();
+                    } else {
+                        setRedInfo();
+                    }
+
+                    info_text.innerText = "[" + getTime() + "] Settings change responded: " + req.responseText
+                }
+
                 req.open("POST", "/settings?"+p, true);
                 req.send();
             }
@@ -82,12 +157,39 @@
                     formData.append("footer_raw", b64)
                     
                     const request = new XMLHttpRequest();
+
+                    request.onload = () => {
+                        if (request.status == 200) {
+                            setGreenInfo();
+                        } else {
+                            setRedInfo();
+                        }
+
+                        info_text.innerText = "[" + getTime() + "] Upload responded: "+request.responseText;
+                    }
                     
-                    request.open("POST", "/footer_upload_raw?redirect=/");
+                    request.open("POST", "/footer_upload_raw");
                     request.send(formData);
                 };
 
                 reader.readAsDataURL(input.files[0]);
+            }
+
+            function default_footer() {
+                let req = new XMLHttpRequest();
+
+                 req.onload = () => {
+                    if(req.status = 200) {
+                        setGreenInfo();
+                    } else {
+                        setRedInfo();
+                    }
+
+                    info_text.innerText = "[" + getTime() + "] Footer change responded: " + req.responseText
+                }
+
+                req.open("POST", "/set_default_footer", true);
+                req.send();
             }
         </script>
     </body>
