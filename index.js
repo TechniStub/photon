@@ -21,13 +21,22 @@ log4js.configure({
 var logger = log4js.getLogger("web");
 var app_logger = log4js.getLogger("app");
 
-logger.info("Application started")
+logger.info("Application started");
+
+const { networkInterfaces } = require('os');
+
+const nets = networkInterfaces();
+const iface = "wlan0";
+
+const port = 3000;
+
+logger.debug("IP ADDRESS: "+nets[iface].address)
 
 const debug_flags = ["-d", "--debug"]
 let debug = process.argv.some(s => debug_flags.includes(s))
 
 if (debug) {
-    logger.warn("DEBUG ENABLED")
+    logger.warn("--- DEBUG ENABLED ---")
 }
 
 fastify.register(require("@fastify/view"), {
@@ -408,8 +417,9 @@ const start = async () => {
     }
 
     try {
-        logger.info("Listening on 0.0.0.0:3000")
-        await fastify.listen({ port: 3000, host: "0.0.0.0" })
+        logger.info("Listening on 0.0.0.0:"+port.to_string());
+        logger.info("Access on http://"+nets[iface].address+":"+port.to_string())
+        await fastify.listen({ port, host: "0.0.0.0" })
     } catch (err) {
         fastify.log.error(err)
         process.exit(1)

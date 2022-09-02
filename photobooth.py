@@ -6,6 +6,7 @@
 # version: 1.0
 # ---------------------------------------------------------------------------
 
+from ipaddress import ip_address
 import RPi.GPIO as GPIO
 from PIL import Image
 from PIL import ImageFont
@@ -18,6 +19,14 @@ from datetime import datetime
 import tweet_api as tweet
 from threading import Thread
 import psutil
+
+import socket
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(("8.8.8.8", 80))
+ip = s.getsockname()[0]
+s.close()
+
+print("IP address: " + ip)
 
 #Seuil de non-enregistrement des images (en Mo)
 low_disk_thres = 120 * (2**20)
@@ -74,6 +83,8 @@ def prepare_img(source=None):
 	else:
 		draw.rectangle([0,0,preview_left_portrait,1024],fill=(0,0,0,128))
 		draw.rectangle([preview_left_portrait+preview_width_portrait,0,1280,1024],fill=(0,0,0,128))
+	
+	draw.text((15,15),"Adresse IP: "+ip,font=font)
 #	if twitter_enabled:
 #		draw.text((15,15),"Publication sur Twitter : OUI",font=font)
 #	else:
@@ -120,10 +131,7 @@ camera.start_preview()
 
 
 def do_capture():
-	timestamp = datetime.now()
-	filename = 'save/pic'+str(timestamp)+'.jpg'
-	camera.capture(filename)
-	os.system("cp '"+filename+"' temp.jpg")
+	camera.capture("temp.jpg")
 
 
 def confirm_capture():
@@ -155,6 +163,10 @@ def confirm_capture():
 		canvas.paste(still.crop([still_left_portrait,0,still_left_portrait+label_width,1200]), (0,0))
 	canvas.save("output.png")
 	os.system("lpr output.png &")
+
+	timestamp = datetime.now()
+	filename = 'save/pic'+str(timestamp)+'.png'
+	os.system("cp output.png '"+filename+"'")
 	
 	hdd = psutil.disk_usage('/')
 	if (hdd.free < low_disk_thres):
