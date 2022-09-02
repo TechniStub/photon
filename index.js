@@ -15,7 +15,7 @@ var log4js = require("log4js");
 
 log4js.configure({
     appenders: { web: { type: "file", filename: "logger.log" }, console: { type: "console" } },
-    categories: { default: { appenders: ["web", "console"], level: "info" } },
+    categories: { default: { appenders: ["web", "console"], level: "trace" } },
 })
 
 var logger = log4js.getLogger("web");
@@ -338,7 +338,8 @@ fastify.get("/download_images", (req, res) => {
         res.header(
             'Content-Disposition',
             'attachment; filename=output.zip');
-        res.send(fs.readFileSync("output.zip")).type('application/zip').code(200)
+        res.send(fs.readFileSync("export.zip")).type('application/zip').code(200)
+        return "Ok"
     } else {
         logger.warn("Not authentified, throwing 401")
         res.code(401)
