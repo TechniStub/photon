@@ -348,14 +348,14 @@ fastify.get("/download_images", (req, res) => {
             if (err) {
                 res.code(501)
                 return "Unexpected error in the zip creation"
+            } else {
+                res.header(
+                    'Content-Disposition',
+                    'attachment; filename=export.zip');
+                res.send(fs.readFileSync("export.zip")).type('application/zip').code(200)
+                return "Ok"
             }
         })
-
-        res.header(
-            'Content-Disposition',
-            'attachment; filename=export.zip');
-        res.send(fs.readFileSync("export.zip")).type('application/zip').code(200)
-        return "Ok"
     } else {
         logger.warn("Not authentified, throwing 401")
         res.code(401)
