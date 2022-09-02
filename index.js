@@ -30,7 +30,14 @@ const iface = "wlan0";
 
 const port = 3000;
 
-logger.debug("IP ADDRESS: "+nets[iface].address)
+let ip_addr = "";
+nets[iface].forEach((e) => {
+    if (e.address.match(/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/)) {
+        ip_addr = e.address
+    }
+})
+
+logger.debug("IP ADDRESS: "+ip_addr)
 
 const debug_flags = ["-d", "--debug"]
 let debug = process.argv.some(s => debug_flags.includes(s))
@@ -418,7 +425,7 @@ const start = async () => {
 
     try {
         logger.info("Listening on 0.0.0.0:"+port.to_string());
-        logger.info("Access on http://"+nets[iface].address+":"+port.to_string())
+        logger.info("Access on http://"+ip_addr":"+port.to_string())
         await fastify.listen({ port, host: "0.0.0.0" })
     } catch (err) {
         fastify.log.error(err)
