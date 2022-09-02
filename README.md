@@ -55,7 +55,7 @@ Pour une execution simple (test):
 Pour une execution plus propre:
 
 Copiez les services avec: `sudo cp service/* /etc/systemd/system/`
-Reloadez le daemon avec: `sudo systemctl daemon-reload`
+et eloadez le daemon avec: `sudo systemctl daemon-reload`
 
  - Pour l'application seule `sudo systemctl start service/photon-standalone.service`
  - Pour l'application web `sudo systemctl start service/photon-webapp.service`
