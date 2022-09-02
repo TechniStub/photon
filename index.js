@@ -368,10 +368,22 @@ fastify.post("/delete_images", (req, res) => {
     if (isAuth(req)) {
         exec("rm -r save/*", (err, _stdout, _stdin) => {
             if (err) {
+                logger.info("Unexpected error in the images deletion")
                 res.code(501)
-                return "Unexpected error in the zip creation"
+                return "Unexpected error in the images deletion"
             }
         })
+
+        if (fs.existsSync("./export.zip")) {
+            logger.info("Archive is present... deleting")
+            exec("rm -r export.zip", (err, _stdout, _stdin) => {
+                if (err) {
+                    logger.info("Unexpected error in archive deletion")
+                    res.code(501)
+                    return "Unexpected error in archive deletion"
+                }
+            })
+        }
 
         res.code(200)
         return "Ok"
