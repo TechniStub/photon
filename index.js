@@ -353,7 +353,7 @@ fastify.get("/download_images", (req, res) => {
 
         res.header(
             'Content-Disposition',
-            'attachment; filename=output.zip');
+            'attachment; filename=export.zip');
         res.send(fs.readFileSync("export.zip")).type('application/zip').code(200)
         return "Ok"
     } else {
