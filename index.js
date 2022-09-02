@@ -424,8 +424,8 @@ const start = async () => {
     }
 
     try {
-        logger.info("Listening on 0.0.0.0:"+port.to_string());
-        logger.info("Access on http://"+ip_addr+":"+port.to_string())
+        logger.info("Listening on 0.0.0.0:"+port.toString());
+        logger.info("Access on http://"+ip_addr+":"+port.toString())
         await fastify.listen({ port, host: "0.0.0.0" })
     } catch (err) {
         fastify.log.error(err)
