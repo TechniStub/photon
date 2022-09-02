@@ -6,7 +6,7 @@ After=multi-user.target
 Type=idle
  
 User=pi
-ExecStart=/usr/bin/python /home/pi/photon/photobooth.python
+ExecStart=/usr/bin/python /home/pi/photon/photobooth.py
 WorkingDirectory=/home/pi/photon/
 Conflicts=photon-webapp.service
 
