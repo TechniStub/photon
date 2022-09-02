@@ -11,20 +11,27 @@ Photon est une application de photobooth crée à l'occasion du [Makerfight](htt
 
 ## Installation
 
-Clonez le repo: `git clone https://github.com/TechniStub/photon` dans `/home/pi`
+Clonez le repo: (a besoin de git) `git clone https://github.com/TechniStub/photon` dans `/home/pi`
 
 ### Dépendances
 
- - Python2
+ - python2
  - python-pip
 
 Executer un `pip install -r requirements.txt`
 
 Pour l'application avec interface web (en developpement):
- - NodeJS
- - NPM
+ - NodeJS (`curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash –` et `sudo apt install nodejs`)
+ - NPM 
+ - zip
 
 Executer un `npm i`
+
+Telechargez la fonte ClearSans-Light dans HOME: `wget https://www.fontsquirrel.com/fonts/download/clear-sans && unzip clear-sans`
+
+### Imprimante
+
+Suivre le tutoriel pour `cups` et `lpr`
 
 ### API Twitter
 
@@ -55,7 +62,7 @@ Pour une execution simple (test):
 Pour une execution plus propre:
 
 Copiez les services avec: `sudo cp service/* /etc/systemd/system/`
-et eloadez le daemon avec: `sudo systemctl daemon-reload`
+et reloadez le daemon avec: `sudo systemctl daemon-reload`
 
  - Pour l'application seule `sudo systemctl start service/photon-standalone.service`
  - Pour l'application web `sudo systemctl start service/photon-webapp.service`
@@ -75,5 +82,5 @@ Note: L'application web lancera automatiquement l'application graphique si le pa
 ## TODO:
  - Faire le bouton pour kill le process web
  - Refactor la partie python 
- - Ne sauvegarder que les photos avec le *footer*
- - Mettre en place une vraie gestion de projet 
+
+Pour plus d'informations, voici la plateforme de [gestion de projet associée](https://icescrum.vsahler.fr/p/PHT/)

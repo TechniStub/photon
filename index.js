@@ -23,7 +23,7 @@ var app_logger = log4js.getLogger("app");
 
 logger.info("Application started");
 
-const { networkInterfaces } = require('os');
+const { networkInterfaces, type } = require('os');
 
 const nets = networkInterfaces();
 const iface = "wlan0";
@@ -106,7 +106,7 @@ function fmt(val, type) {
 function start_app() {
     app_logger.info("Starting application");
 
-    if (!isNaN(app_process)) {
+    if (!isNaN(app_process) || typeof(app_process) == 'object') {
         app_logger.warn("Application is already started... exiting")
         stop_app()
     }
